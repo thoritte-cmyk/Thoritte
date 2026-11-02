@@ -1,0 +1,276 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Monthly Duty Roster</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F1F5F6;--sf:#fff;--ink:#0D2B33;--mu:#5B7680;--ln:#D3DFE2;--ac:#0F7C8A;--M:#17874D;--E:#B97700;--N:#4F46E5;--O:#6B7780;--L:#C2413A;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1B20;--sf:#112A31;--ink:#E6F1F3;--mu:#8FA9B1;--ln:#24424B;--ac:#4FC3D1;--M:#4ADE80;--E:#FBBF24;--N:#A5A0FF;--O:#9AA8B0;--L:#F87171;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1B20;--sf:#112A31;--ink:#E6F1F3;--mu:#8FA9B1;--ln:#24424B;--ac:#4FC3D1;--M:#4ADE80;--E:#FBBF24;--N:#A5A0FF;--O:#9AA8B0;--L:#F87171;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Figtree,"Noto Sans Thaana",system-ui,sans-serif;padding-bottom:84px}
+html[lang=dv] body{font-family:"Noto Sans Thaana",Figtree,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px;max-width:1100px;margin:auto}
+header h1{font-size:20px;font-weight:800;margin:0;flex:1;min-width:150px}main{max-width:1100px;margin:auto;padding:0 14px}
+select,input,button{font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:7px 10px}
+button{cursor:pointer}button.pr{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600}button.dg{color:var(--L)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:14px;margin:0 0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:4px 0 10px}
+.sc{overflow:auto;max-height:70vh;-webkit-overflow-scrolling:touch;border:1px solid var(--ln);border-radius:12px;background:var(--sf)}
+table{border-collapse:separate;border-spacing:0}th,td{padding:5px 3px;text-align:center;border-bottom:1px solid var(--ln);font-weight:400}
+thead th{position:sticky;top:0;z-index:2;background:var(--sf);font-size:12px;color:var(--mu);min-width:52px}thead th:first-child{inset-inline-start:0;z-index:3}
+th.td{color:var(--ac);font-weight:800}th.wk,td.wk{border-inline-start:2px solid var(--ln)}
+tbody th{text-align:start;position:sticky;inset-inline-start:0;z-index:1;background:var(--sf);min-width:120px;padding-inline:8px;font-weight:600}
+tbody th small{display:block;color:var(--mu);font-weight:400;font-size:11px}tr.me th{box-shadow:inset 3px 0 var(--ac)}
+.p{display:inline-block;min-width:44px;border-radius:99px;padding:3px 8px;font-size:12px;font-weight:700;border:0;text-align:center;appearance:none;-webkit-appearance:none}
+select.p{cursor:pointer;width:56px}
+.p.M{background:color-mix(in srgb,var(--M) 20%,transparent);color:var(--M)}.p.E{background:color-mix(in srgb,var(--E) 20%,transparent);color:var(--E)}
+.p.N{background:color-mix(in srgb,var(--N) 20%,transparent);color:var(--N)}.p.O{background:color-mix(in srgb,var(--O) 20%,transparent);color:var(--O)}
+.p.L{background:color-mix(in srgb,var(--L) 18%,transparent);color:var(--L)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ln)}
+.row:last-child{border:0}.mu{color:var(--mu);font-size:13px}h2{font-size:16px;margin:0 0 8px}
+.meter{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.meter i{display:block;height:100%;background:var(--ac)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;background:var(--sf);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;max-width:220px;border:0;border-radius:0;background:none;padding:12px 4px;color:var(--mu);font-weight:600}nav button.on{color:var(--ac);box-shadow:inset 0 3px var(--ac)}
+</style></head><body>
+<header><h1 id="ttl"></h1><span id="usr" class="mu"></span><button id="lg"></button><button id="th"></button><button id="so"></button></header>
+<main id="v"></main><nav id="nv"></nav>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+const EN={app:'Monthly Duty Roster',roster:'Roster',leave:'Leave',alarms:'Alarms',admin:'Admin',M:'AM',E:'PM',N:'ND',O:'OFF',L:'LV',lM:'Morning 06–14',lE:'Evening 14–22',lN:'Night 22–06',lO:'Off',lL:'Leave',gen:'Generate month',req:'Request leave',sick:'Sick',annual:'Annual',submit:'Submit request',pending:'Pending',approved:'Approved',covered:'Covered',rejected:'Rejected',approve:'Approve & auto-cover',reject:'Reject',find:'Change cover',assign:'Assign',hol:'Holiday offs this month',allow:'Allowance',users:'Users, roles & departments',depts:'Departments',dname:'New department',holidays:'Public holidays',add:'Add',reset:'Reset demo data',remind:'Remind me before duty',custom:'Custom (min)',test:'Test chime',push:'Enable push',none:'No one in this department is off that day.',nextduty:'Next duty',empty:'Nothing here yet.',review:'Leave to review',mine:'My requests',ro:'Read-only. Only your department supervisor or the admin can change shifts.',confirm:'This replaces manual edits for the month. Continue?',wait:'Your account is waiting for the admin to assign a department.',google:'Sign in with Google',gnote:'Sign in with your Google account. New accounts wait for an administrator to assign a department.',demo:'Demo accounts (local only)',autherr:'Sign-in failed. Please try again.',checking:'Checking sign-in…',loading:'Loading shared roster…',so:'Sign out',by:'covered by',perm:'Not permitted for your role.',rot:'Rotate every',wk7:'7 days (weekly)',days:'days',cdays:'Custom (N days)',policy:'Off-day policy',pweek:'1 OFF per week',pcycle:'1 OFF per cycle',allds:'All departments'};
+const DV={app:'މަހުގެ ޑިއުޓީ ރޯސްޓަރ',roster:'ރޯސްޓަރ',leave:'ރަޖާ',alarms:'އެލާރމް',admin:'އެޑްމިން',lM:'ހެނދުނު',lE:'ހަވީރު',lN:'ރޭގަނޑު',lO:'އޮފް',lL:'ރަޖާ',reject:'ރިޖެކްޓް',add:'އިތުރުކުރޮ',test:'ޓެސްޓް'};
+const SEQ=['M','E','N'],ST=['M','E','N','O','L'],T0={M:6,E:14,N:22},$=s=>document.querySelector(s);
+const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const t=k=>(S.lang=='dv'&&DV[k])||EN[k]||k,iso=d=>d.toLocaleDateString('en-CA'),D=(s,n)=>{const x=new Date(s+'T00:00');x.setDate(x.getDate()+n);return iso(x)};
+const loc=()=>S.lang=='dv'?'dv-MV':'en-GB',dow=d=>(new Date(d+'T00:00').getDay()+6)%7;
+const wn=d=>Math.floor((Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8))-Date.UTC(2024,0,1))/6048e5),wStart=w=>iso(new Date(2024,0,1+w*7));
+const mdays=m=>{const[y,o]=m.split('-').map(Number);return Array.from({length:new Date(y,o,0).getDate()},(_,i)=>`${m}-${String(i+1).padStart(2,'0')}`)};
+let S,tab='roster',open=null,fired=new Set(),pick=0;
+// ---- Firebase Auth ----
+// Setup (one-time, in the Firebase Console):
+//   1. Authentication > Sign-in method > enable "Google".
+//   2. Authentication > Settings > Authorized domains: add localhost and your deployed domain.
+//   3. Firestore Database > Create database, then publish the rules in firestore.rules.
+//   4. Serve over http(s) — Google sign-in will not complete from a file:// URL. For local testing:
+//        python3 -m http.server 8000   →   http://localhost:8000/Monthly%20Duty%20Roster.html
+// Add admin emails below to promote them automatically on first sign-in.
+// Leave the list empty to make the first person who signs in the admin (bootstrap).
+const ADMIN_EMAILS=[];
+const firebaseConfig={apiKey:"AIzaSyBMBbOiIGrfDtx3MOEO1R3M7sbw8DmDDLg",authDomain:"dutyroster-938f0.firebaseapp.com",projectId:"dutyroster-938f0",storageBucket:"dutyroster-938f0.firebasestorage.app",messagingSenderId:"738705691837",appId:"1:738705691837:web:4458d8663acccb2aad93d4",measurementId:"G-2Q547Y27XY"};
+let fbAuth=null,db=null,fbUser=null,fbReady=false,syncState='local';
+try{
+ if(window.firebase&&typeof firebase.initializeApp=='function'){
+  if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+  fbAuth=firebase.auth();
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  if(firebase.firestore){db=firebase.firestore();db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}
+ }
+}catch(x){console.warn('Firebase init failed:',x)}
+fbReady=!fbAuth;
+const authProvider=()=>new firebase.auth.GoogleAuthProvider();
+const clone=v=>JSON.parse(JSON.stringify(v));
+const isObj=v=>v!==null&&typeof v=='object'&&!Array.isArray(v);
+const remoteShared=()=>({depts:S.depts||[],users:S.users||[],hols:S.hols||[],roster:S.roster||{},leaves:Object.fromEntries((S.leaves||[]).map(l=>[String(l.id),l]))});
+const leavesArr=v=>Array.isArray(v)?v.slice():Object.values(v||{});
+const DEL=Symbol('del');
+let lastSynced=null,saveTimer=null,writeInFlight=false,pendingRemote=null,sharedReady=false,sharedUnsub=null,seeding=false;
+function saveLocal(){try{localStorage.setItem('dr2',JSON.stringify(S))}catch(x){}}
+function diffShared(a,b,path,ops){
+ if(isObj(a)&&isObj(b)){
+  const keys=new Set([...Object.keys(a),...Object.keys(b)]);
+  for(const k of keys){if(!(k in b))ops.push([[...path,k],DEL]);else if(!(k in a))ops.push([[...path,k],b[k]]);else diffShared(a[k],b[k],[...path,k],ops)}
+ }else if(JSON.stringify(a)!==JSON.stringify(b))ops.push([path,b]);
+}
+function applyOps(base,ops){
+ const out=base?clone(base):{};
+ for(const [path,val] of ops){
+  if(!path.length)return val===DEL?{}:clone(val);
+  let o=out;
+  for(let i=0;i<path.length-1;i++){if(!isObj(o[path[i]]))o[path[i]]={};o=o[path[i]]}
+  const k=path[path.length-1];
+  if(val===DEL)delete o[k];else o[k]=clone(val);
+ }
+ return out;
+}
+function queueSharedWrite(){
+ if(seeding||!db||!fbUser||!sharedReady||!lastSynced)return;
+ clearTimeout(saveTimer);
+ saveTimer=setTimeout(commitShared,300);
+}
+async function commitShared(){
+ saveTimer=null;
+ if(!db||!fbUser||!sharedReady||!lastSynced||writeInFlight)return;
+ const current=clone(remoteShared()),ops=[];
+ diffShared(lastSynced,current,[],ops);
+ if(!ops.length)return;
+ const expected=JSON.stringify(current),ref=db.doc('roster/main');
+ writeInFlight=true;
+ try{
+  let merged;
+  await db.runTransaction(async tx=>{
+   const snap=await tx.get(ref);
+   const base=snap.exists?snap.data():{};
+   delete base.updatedAt;
+   merged=applyOps(base,ops);
+   tx.set(ref,{...merged,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+  });
+  writeInFlight=false;syncState='ok';lastSynced=clone(merged);pendingRemote=null;
+  if(JSON.stringify(remoteShared())===expected){applyRemote(merged);mapAuthUser()}
+  else queueSharedWrite();
+ }catch(e){writeInFlight=false;syncState='error';console.warn('Firestore write failed:',e);setTimeout(queueSharedWrite,4000)}
+}
+async function seedShared(){
+ if(!db||!fbUser||!sharedReady)return;
+ seeding=true;writeInFlight=true;
+ const data=clone(remoteShared()),ref=db.doc('roster/main');
+ try{
+  let wrote=false;
+  await db.runTransaction(async tx=>{
+   const snap=await tx.get(ref);
+   if(snap.exists)return;
+   wrote=true;
+   tx.set(ref,{...data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+  });
+  writeInFlight=false;seeding=false;
+  if(wrote){lastSynced=data;syncState='ok';if(JSON.stringify(remoteShared())!==JSON.stringify(data))queueSharedWrite()}
+  else{lastSynced=null;if(pendingRemote){const r=pendingRemote;pendingRemote=null;applyRemote(r);mapAuthUser()}}
+ }catch(e){writeInFlight=false;seeding=false;syncState='error';console.warn('Firestore seed failed:',e);setTimeout(seedShared,4000)}
+}
+function applyRemote(d){
+ if(!d)return;
+ const leafMap=Array.isArray(d.leaves)?Object.fromEntries(d.leaves.map(l=>[String(l.id),l])):(d.leaves||{});
+ S.depts=d.depts||[];S.users=d.users||[];S.hols=d.hols||[];S.roster=d.roster||{};S.leaves=leavesArr(d.leaves);
+ if(S.me!=null&&!S.users.some(u=>u.id==S.me))S.me=null;
+ lastSynced=clone({depts:S.depts,users:S.users,hols:S.hols,roster:S.roster,leaves:leafMap});
+ syncState='ok';saveLocal();render();
+}
+function mapAuthUser(){
+ const u=fbUser;if(!u)return;
+ const mail=(u.email||'').toLowerCase();
+ let p=S.users.find(x=>x.uid===u.uid)||S.users.find(x=>(x.email||'').toLowerCase()===mail),changed=false;
+ if(!p){const invite=ADMIN_EMAILS.some(x=>x.toLowerCase()===mail);const hasAdmin=S.users.some(x=>x.auth&&x.role=='admin');const nid=S.users.reduce((m,x)=>Math.max(m,+x.id||0),-1)+1;p={id:nid,name:u.displayName||u.email||'New User',email:u.email||'',role:(invite||!hasAdmin)?'admin':'staff',dept:null,allow:2,covers:0};S.users.push(p);changed=true}
+ if(p.uid!==u.uid){p.uid=u.uid;changed=true}
+ if((p.photo||null)!==(u.photoURL||null)){p.photo=u.photoURL||null;changed=true}
+ if(!p.auth){p.auth=true;changed=true}
+ if(S.me!==p.id){S.me=p.id;changed=true}
+ if(changed){save();render()}
+}
+function subscribeShared(){
+ if(!db||!fbUser||sharedUnsub)return;
+ const ref=db.doc('roster/main');
+ sharedUnsub=ref.onSnapshot(snap=>{
+  if(snap.metadata.hasPendingWrites&&lastSynced)return;
+  if(!snap.exists){sharedReady=true;lastSynced={};syncState='ok';mapAuthUser();seedShared();return}
+  if(writeInFlight||saveTimer){pendingRemote=snap.data();return}
+  applyRemote(snap.data());mapAuthUser();
+ },err=>{
+  console.warn('Firestore listen failed:',err);
+  sharedReady=false;sharedUnsub=null;syncState='error';mapAuthUser();render();
+ });
+}
+function onAuth(u){
+ fbReady=true;
+ if(!u){
+  fbUser=null;
+  if(sharedUnsub){sharedUnsub();sharedUnsub=null}
+  sharedReady=false;lastSynced=null;pendingRemote=null;seeding=false;saveTimer=null;
+  S.me=null;saveLocal();render();return;
+ }
+ const same=fbUser&&fbUser.uid===u.uid;
+ fbUser=u;
+ if(!db){mapAuthUser();return}
+ if(same&&sharedUnsub){mapAuthUser();return}
+ if(sharedUnsub){sharedUnsub();sharedUnsub=null;sharedReady=false;lastSynced=null;pendingRemote=null}
+ subscribeShared();
+}
+async function googleLogin(){const box=document.getElementById('autherr');if(box)box.textContent='';
+ try{await fbAuth.signInWithPopup(authProvider())}
+ catch(x){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(x.code)){try{return await fbAuth.signInWithRedirect(authProvider())}catch(y){x=y}}
+  if(box)box.textContent=x.message||t('autherr')}}
+function signOut(){if(fbAuth)fbAuth.signOut().catch(()=>{});fbUser=null;if(sharedUnsub){sharedUnsub();sharedUnsub=null}sharedReady=false;lastSynced=null;pendingRemote=null;S.me=null;saveLocal();render()}
+const me=()=>S.users[S.me],dn=id=>(S.depts.find(d=>d.id==id)||{name:'—'}).name,save=()=>{saveLocal();queueSharedWrite()};
+const dept=()=>{const u=me();return u.role=='admin'?(S.view||S.depts[0].id):u.dept},can=dp=>{const u=me();return!!dp&&(u.role=='admin'||(u.role=='supervisor'&&u.dept==dp))};
+try{S=JSON.parse(localStorage.getItem('dr2'))}catch(x){}
+function init(){const m=iso(new Date()).slice(0,7),mk=(n,dp,i)=>({id:i,name:n,email:n.replace(/\W/g,'').toLowerCase()+'@clinic.mv',role:'staff',dept:dp,allow:2,covers:0});
+const dc=['Dr. Aishath','Dr. Ibrahim','Dr. Mariyam','Dr. Ahmed','Dr. Fathimath','Dr. Hussain'],rc=['Aminath','Mohamed','Zaina','Ali','Nasra','Shifa'];
+const U=[{...mk('Owner',null,0),role:'admin',allow:0},...dc.map((n,i)=>mk(n,'doc',i+1)),...rc.map((n,i)=>mk(n,'rec',i+7))];U[1].role=U[7].role='supervisor';
+S={lang:'en',theme:null,me:null,view:null,month:m,hols:[m+'-09',m+'-23'],alarms:{},leaves:[],roster:{},depts:[{id:'doc',name:'Doctors'},{id:'rec',name:'Receptionists'}],users:U}}
+// Rotation: AM -> PM -> ND -> OFF every N days. Even-ranked staff rest on the last Night day and odd-ranked on the first Morning day, so Night never runs straight into Morning and cover stays staggered.
+// Policy 'cycle': at least 1 OFF in every N-day cycle. Policy 'week': at least 1 OFF in every Mon-Sun week.
+function gen(dp,m){const dd=S.depts.find(x=>x.id==dp),n=Math.max(2,Math.min(31,dd.n||7)),pol=dd.pol||'week',st=S.users.filter(u=>u.dept==dp),c=st.length;if(!c)return;const R=S.roster[dp]=S.roster[dp]||{},days=mdays(m),H=st.map(()=>0);
+const cell=(i,x)=>{const b=Math.floor(x/n),p=x%n,s=SEQ[(i+b)%3],hT=s=='M'?i%2==1:s=='N'&&i%2==0;return(hT&&p==(s=='M'?0:n-1))||(pol=='cycle'&&!hT&&p==(i+b)%n)?'O':s};
+for(let w=wn(days[0]);w<=wn(days[days.length-1]);w++){const A=st.map((_,i)=>{const a=[0,1,2,3,4,5,6].map(k=>cell(i,w*7+k));if(pol=='week'&&!a.includes('O'))a[(i+w)%7]='O';return a});
+// Equal holiday offs: the colleague with the fewest holiday offs so far takes the OFF; duties are swapped within the week so daily cover is unchanged
+S.hols.filter(h=>wn(h)==w).forEach(h=>{const k=dow(h),F=A.map((a,i)=>a[k]=='O'?i:-1).filter(i=>i>=0),sel=st.map((_,i)=>i).sort((a,b)=>H[a]-H[b]||(a+w)%c-(b+w)%c).slice(0,Math.max(1,F.length));
+sel.forEach(i=>{if(A[i][k]=='O')return;const e=A[i].findIndex((v,x)=>v=='O'&&x!=k),j=F.find(j=>!sel.includes(j)&&T0[A[j][e]]!=null);if(e<0||j==null)return;[A[i][k],A[j][k]]=[A[j][k],A[i][k]];[A[i][e],A[j][e]]=[A[j][e],A[i][e]];F.splice(F.indexOf(j),1)});A.forEach((a,i)=>{if(a[k]=='O')H[i]++})});
+for(let k=0;k<7;k++){const d=D(wStart(w),k);if(!days.includes(d))continue;R[d]={};st.forEach((u,i)=>R[d][u.id]=A[i][k]);
+S.leaves.filter(l=>['approved','covered'].includes(l.status)&&l.date==d&&R[d][l.uid]!=null).forEach(l=>{R[d][l.uid]='L';if(l.cover!=null&&R[d][l.cover]!=null)R[d][l.cover]=l.shift})}}save()}
+const ensure=(dp,m)=>{if(!S.roster[dp]?.[m+'-01'])gen(dp,m)};
+const hrs=(dp,d,id)=>{const ws=D(d,-dow(d));return[0,1,2,3,4,5,6].filter(k=>T0[S.roster[dp]?.[D(ws,k)]?.[id]]!=null).length*8};
+function cands(l){const dp=S.users[l.uid].dept,d=l.date,R=S.roster[dp];return S.users.filter(u=>u.dept==dp&&u.id!=l.uid&&R[d][u.id]=='O'&&!((l.shift=='M'||l.shift=='N')&&R[D(d,-1)]?.[u.id]=='N')&&!(l.shift=='N'&&R[D(d,1)]?.[u.id]=='N')).map(u=>({u,h:hrs(dp,d,u.id)})).filter(x=>x.h<48).sort((a,b)=>a.h-b.h||a.u.covers-b.u.covers)}
+function assign(id,uid,q){const l=S.leaves.find(x=>x.id==id),dp=S.users[l.uid].dept;if(!can(dp))return alert(t('perm'));const R=S.roster[dp][l.date];
+if(l.cover!=null){R[l.cover]='O';S.users[l.cover].covers--}R[uid]=l.shift;S.users[uid].covers++;l.cover=uid;l.status='covered';open=null;if(!q){save();render()}}
+function decide(id,ok){const l=S.leaves.find(x=>x.id==id),dp=S.users[l.uid].dept;if(!can(dp))return alert(t('perm'));l.status=ok?'approved':'rejected';
+if(ok){ensure(dp,l.date.slice(0,7));const r=S.roster[dp][l.date];l.shift=r[l.uid];if(T0[l.shift]!=null){r[l.uid]='L';const c=cands(l)[0];if(c)assign(id,c.u.id,1)}}save();render()}
+function req(){const d=$('#ld').value;if(!d)return;S.leaves.push({id:Date.now(),uid:S.me,date:d,type:$('#lt').value,status:'pending'});save();render()}
+function setCell(dp,d,i,v){if(!can(dp))return alert(t('perm'));S.roster[dp][d][i]=v;save();render()}
+function regen(){const dp=dept();if(can(dp)&&confirm(t('confirm'))){gen(dp,S.month);render()}}
+function shiftMonth(n){const[y,o]=S.month.split('-').map(Number);S.month=iso(new Date(y,o-1+n,1)).slice(0,7);save();render()}
+const pill=v=>`<span class="p ${v}">${t(v)}</span>`;
+function vRoster(){const dp=dept(),u0=me();if(!dp)return`<div class="card">${t('wait')}</div>`;ensure(dp,S.month);
+const st=S.users.filter(u=>u.dept==dp),ed=can(dp),days=mdays(S.month),td=iso(new Date()),R=S.roster[dp];
+let h=`<div class="bar"><span><button onclick="shiftMonth(-1)" aria-label="Previous month">‹</button> <b>${new Date(S.month+'-01T00:00').toLocaleDateString(loc(),{month:'long',year:'numeric'})}</b> <button onclick="shiftMonth(1)" aria-label="Next month">›</button></span>`;
+h+=u0.role=='admin'?`<select aria-label="Department" onchange="S.view=this.value;render()">${S.depts.map(d=>`<option value="${d.id}" ${d.id==dp?'selected':''}>${e(d.name)}</option>`).join('')}</select>`:`<b>${e(dn(dp))}</b>`;
+if(ed)h+=`<button class="pr" onclick="regen()">${t('gen')}</button>`;
+h+=`</div>${ed?`<div class="bar">${rotCtl(dp)}</div>`:''}<div class="sc"><table><thead><tr><th></th>${days.map(d=>`<th class="${d==td?'td':''} ${dow(d)==0?'wk':''}">${new Date(d+'T00:00').toLocaleDateString(loc(),{weekday:'narrow'})}<br>${+d.slice(8)}${S.hols.includes(d)?'★':''}</th>`).join('')}</tr></thead><tbody>`;
+st.forEach(u=>{h+=`<tr class="${u.id==S.me?'me':''}"><th>${e(u.name)}<small>${days.filter(d=>R[d][u.id]=='O').length} OFF</small></th>${days.map(d=>{const v=R[d][u.id]||'O';return`<td class="${dow(d)==0?'wk':''}">${ed?`<select class="p ${v}" aria-label="${e(u.name)} ${d}" onchange="setCell('${dp}','${d}',${u.id},this.value)">${ST.map(s=>`<option value="${s}" ${s==v?'selected':''}>${t(s)}</option>`).join('')}</select>`:pill(v)}</td>`}).join('')}</tr>`});
+return h+`</tbody></table></div><p class="mu">${ST.map(v=>pill(v)+' '+t('l'+v)).join(' &nbsp; ')} &nbsp; ★ ${t('hol')}${ed?'':'<br>'+t('ro')}</p>`}
+function vLeave(){const u=me(),dp=u.dept;let h='';
+if(dp){ensure(dp,S.month);const n=S.hols.filter(d=>d.startsWith(S.month)&&['O','L'].includes(S.roster[dp][d]?.[u.id])).length;
+h+=`<div class="card"><h2>${t('hol')}</h2><div class="meter"><i style="width:${Math.min(100,n/Math.max(1,u.allow)*100)}%"></i></div><p class="mu">${n} / ${u.allow} · ${t('allow')}</p></div>
+<div class="card"><h2>${t('req')}</h2><div class="bar"><select id="lt"><option value="sick">${t('sick')}</option><option value="annual">${t('annual')}</option></select><input type="date" id="ld"><button class="pr" onclick="req()">${t('submit')}</button></div></div>
+<div class="card"><h2>${t('mine')}</h2>`;const m=S.leaves.filter(l=>l.uid==S.me);
+h+=(m.length?m.map(l=>`<div class="row"><span>${l.date} · ${t(l.type)}</span><span class="mu">${t(l.status)}${l.cover!=null?' · '+t('by')+' '+e(S.users[l.cover].name):''}</span></div>`).join(''):`<p class="mu">${t('empty')}</p>`)+'</div>'}
+if(u.role!='staff'){const L=S.leaves.filter(l=>can(S.users[l.uid].dept)&&(l.status=='pending'||T0[l.shift]!=null));h+=`<div class="card"><h2>${t('review')}</h2>`;
+h+=L.length?L.map(l=>{let r=`<div class="row"><span>${e(S.users[l.uid].name)} · ${l.date} · ${t(l.type)} ${l.shift?pill(l.shift):''} <span class="mu">${t(l.status)}${l.cover!=null?' · '+t('by')+' '+e(S.users[l.cover].name):''}</span></span><span>`;
+r+=l.status=='pending'?`<button class="pr" onclick="decide(${l.id},1)">${t('approve')}</button> <button class="dg" onclick="decide(${l.id},0)">${t('reject')}</button>`:`<button onclick="open=${open==l.id?'null':l.id};render()">${t('find')}</button>`;r+='</span></div>';
+if(open==l.id){const c=cands(l);r+=c.length?c.map((x,i)=>`<div class="row mu"><span>${i?'':'★ '}${e(x.u.name)} · OFF · ${x.h}h · ${x.u.covers}×</span><button onclick="assign(${l.id},${x.u.id})">${t('assign')}</button></div>`).join(''):`<p class="mu">${t('none')}</p>`}return r}).join(''):`<p class="mu">${t('empty')}</p>`;h+='</div>'}return h}
+function nextDuty(id){const R=S.roster[S.users[id].dept]||{};for(const d of Object.keys(R).sort()){const s0=R[d][id];if(T0[s0]!=null){const s=new Date(d+'T00:00');s.setHours(T0[s0]);if(s>Date.now())return{d,sh:s0,s}}}}
+function vAlarms(){const a=S.alarms[S.me]||[15],ns=nextDuty(S.me);
+return`<div class="card"><h2>${t('nextduty')}</h2><p>${ns?`${pill(ns.sh)} ${ns.d} ${String(T0[ns.sh]).padStart(2,'0')}:00`:t('empty')}</p></div>
+<div class="card"><h2>${t('remind')}</h2><div class="bar">${[15,30,60,120].map(m=>`<button class="${a.includes(m)?'pr':''}" onclick="tog(${m})">${m<60?m+' min':m/60+' h'}</button>`).join('')}</div>
+<div class="bar"><span><input id="cm" type="number" min="1" max="1440" placeholder="${t('custom')}" style="width:130px"> <button onclick="tog(+$('#cm').value)">${t('add')}</button></span><span><button onclick="chime()">${t('test')}</button> <button onclick="Notification.requestPermission()">${t('push')}</button></span></div>
+<p class="mu">${a.slice().sort((x,y)=>x-y).join(' · ')} min</p></div>`}
+function tog(m){if(!m)return;const a=S.alarms[S.me]||[15];S.alarms[S.me]=a.includes(m)?a.filter(x=>x!=m):[...a,m];save();render()}
+function chime(){try{const c=new(window.AudioContext||webkitAudioContext)();[660,880,1100].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain(),s=c.currentTime+i*.25;o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.2,s);g.gain.exponentialRampToValueAtTime(.001,s+.22);o.start(s);o.stop(s+.25)})}catch(x){}}
+setInterval(()=>{if(S.me==null)return;const ns=nextDuty(S.me);if(!ns)return;(S.alarms[S.me]||[15]).forEach(m=>{const df=ns.s-Date.now()-m*6e4,k=S.me+ns.d+m;if(df<=0&&df>-45e3&&!fired.has(k)){fired.add(k);chime();try{Notification.permission=='granted'&&new Notification(t('app'),{body:`${t(ns.sh)} · ${m} min`})}catch(x){}}})},15000);
+const regenAll=()=>{S.depts.forEach(d=>gen(d.id,S.month));render()};
+function chg(id,k,v){S.users[id][k]=v||null;regenAll()}
+function rotCtl(dp){const d=dp=='*'?S.depts[0]:S.depts.find(x=>x.id==dp),n=d.n||7,p=d.pol||'week',pre=[2,3,4,7].includes(n);
+return`<span class="mu">${t('rot')}</span> <select aria-label="${t('rot')}" onchange="setRot('${dp}',this.value=='c'?5:+this.value,null)">${[2,3,4,7].map(x=>`<option value="${x}" ${x==n?'selected':''}>${x==7?t('wk7'):x+' '+t('days')}</option>`).join('')}<option value="c" ${pre?'':'selected'}>${t('cdays')}</option></select>${pre?'':` <input type="number" min="2" max="31" value="${n}" style="width:62px" aria-label="${t('cdays')}" onchange="setRot('${dp}',+this.value,null)">`} <select aria-label="${t('policy')}" onchange="setRot('${dp}',null,this.value)"><option value="week" ${p=='week'?'selected':''}>${t('pweek')}</option><option value="cycle" ${p=='cycle'?'selected':''}>${t('pcycle')}</option></select>`}
+function setRot(dp,n,p){const T=dp=='*'?S.depts:[S.depts.find(x=>x.id==dp)];if(!T.every(d=>can(d.id)))return alert(t('perm'));if(!confirm(t('confirm')))return render();T.forEach(d=>{if(n!=null)d.n=Math.max(2,Math.min(31,n||7));if(p)d.pol=p;gen(d.id,S.month)});save();render()}
+function vAdmin(){return`<div class="card"><h2>${t('depts')}</h2>`+S.depts.map(d=>`<div class="row"><span>${e(d.name)} <span class="mu">(${S.users.filter(u=>u.dept==d.id).length})</span></span><span>${rotCtl(d.id)}</span></div>`).join('')+`<div class="row"><b>${t('allds')}</b><span>${rotCtl('*')}</span></div><div class="bar"><input id="dnm" placeholder="${t('dname')}"><button onclick="$('#dnm').value&&S.depts.push({id:'d'+Date.now(),name:$('#dnm').value});save();render()">${t('add')}</button></div></div>
+<div class="card"><h2>${t('users')}</h2>`+S.users.filter(u=>u.id).map(u=>`<div class="row"><span>${e(u.name)}<br><small class="mu">${e(u.email)}</small></span><span><select aria-label="Role" onchange="chg(${u.id},'role',this.value)">${['staff','supervisor','admin'].map(r=>`<option ${r==u.role?'selected':''}>${r}</option>`).join('')}</select> <select aria-label="Department" onchange="chg(${u.id},'dept',this.value)"><option value="">—</option>${S.depts.map(d=>`<option value="${d.id}" ${d.id==u.dept?'selected':''}>${e(d.name)}</option>`).join('')}</select> <input type="number" min="0" max="30" value="${u.allow}" style="width:62px" aria-label="${t('allow')}" onchange="S.users[${u.id}].allow=+this.value;save()"></span></div>`).join('')+`</div>
+<div class="card"><h2>${t('holidays')}</h2>${S.hols.sort().map(d=>`<div class="row"><span>★ ${d}</span><button class="dg" aria-label="Remove" onclick="S.hols=S.hols.filter(x=>x!='${d}');regenAll()">✕</button></div>`).join('')}<div class="bar"><input type="date" id="hd"><button onclick="$('#hd').value&&S.hols.push($('#hd').value);regenAll()">${t('add')}</button></div></div>
+<button class="dg" onclick="localStorage.removeItem('dr2');init();render()">${t('reset')}</button>`}
+function login(i){if(fbAuth)return alert(t('perm'));S.me=i;pick=0;tab='roster';save();render()}
+function newUser(){if(fbAuth)return;let u=S.users.find(x=>x.email=='new.user@gmail.com');if(!u){u={id:S.users.length,name:'New User',email:'new.user@gmail.com',role:'staff',dept:null,allow:2,covers:0};S.users.push(u)}login(u.id)}
+function vLogin(){
+ const demo=`<div class="bar"><span class="mu">${t('demo')}</span><button onclick="pick=pick?0:1;render()">${pick?'Hide':'Show'}</button></div>`+(pick?S.users.map(u=>`<div class="row"><span>${e(u.name)}<br><small class="mu">${e(u.email)}</small></span><button onclick="login(${u.id})">${u.role}${u.dept?' · '+e(dn(u.dept)):''}</button></div>`).join(''):'');
+ if(fbAuth){
+  if(!fbReady)return`<div class="card"><h2>${t('app')}</h2><p class="mu">${t('checking')}</p></div>`;
+  if(fbUser&&!sharedReady)return`<div class="card"><h2>${t('app')}</h2><p class="mu">${t('loading')}</p></div>`;
+  return`<div class="card"><h2>${t('app')}</h2><p class="mu">${t('gnote')}</p><div class="bar"><button class="pr" onclick="googleLogin()">${t('google')}</button></div><p id="autherr" class="mu" role="alert" style="color:var(--L)"></p></div>`}
+ return`<div class="card"><h2>${t('app')}</h2><p class="mu">${t('gnote')}</p>`+demo+'</div>'}
+function render(){const dk=S.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'),L=S.lang=='dv';
+document.documentElement.dataset.theme=dk;document.documentElement.lang=L?'dv':'en';document.documentElement.dir=L?'rtl':'ltr';
+$('#ttl').textContent=t('app');$('#lg').textContent=L?'EN':'ދިވެހި';$('#th').textContent=dk=='dark'?'☀':'☾';$('#th').setAttribute('aria-label','Theme');
+if(S.me==null){$('#usr').textContent='';$('#so').hidden=true;$('#nv').innerHTML='';$('#v').innerHTML=vLogin();return}
+const u=me(),tabs=['roster','leave','alarms'].concat(u.role=='admin'?['admin']:[]);if(!tabs.includes(tab))tab='roster';
+$('#so').hidden=false;$('#so').textContent=t('so');$('#usr').textContent=`${u.name} · ${u.role}${u.dept?' · '+dn(u.dept):''}${syncState=='error'?' · ⚠ offline':''}`;
+$('#nv').innerHTML=tabs.map(k=>`<button class="${k==tab?'on':''}" onclick="tab='${k}';render()">${t(k)}</button>`).join('');
+$('#v').innerHTML={roster:vRoster,leave:vLeave,alarms:vAlarms,admin:vAdmin}[tab]()}
+$('#lg').onclick=()=>{S.lang=S.lang=='dv'?'en':'dv';save();render()};$('#th').onclick=()=>{S.theme=document.documentElement.dataset.theme=='dark'?'light':'dark';save();render()};$('#so').onclick=signOut;
+if(!S||!S.users||S.v!=3)init();S.v=3;
+if(fbAuth){S.me=null;saveLocal();fbAuth.onAuthStateChanged(onAuth);render()}
+else{fbReady=true;render()}
+</script></body></html>
